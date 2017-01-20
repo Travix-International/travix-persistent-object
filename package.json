@@ -1,0 +1,41 @@
+{
+  "name": "travix-persistent-object",
+  "description": "An object wrapper for NodeJs that automatically (and asynchronously) saves content of the object to a JSON file as soon as object has been modified",
+  "license": "MIT",
+  "version": "0.1.0",
+  "author": {
+    "name": "Travix International",
+    "url": "http://travix.com"
+  },
+  "contributors": [
+    {
+      "name": "Den Vlassenko",
+      "url": "https://github.com/vladen"
+    }
+  ],
+  "repository" : {
+    "type": "git",
+    "url": "https://github.com/Travix-International/travix-persistent-object.git"
+  },
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint *.js",
+    "spec": "mocha --reporter markdown test.js > SPEC.md",
+    "test": "nyc --reporter=lcov mocha test.js && nyc report",
+    "trav": "codeclimate-test-reporter < coverage/lcov.info"
+  },
+  "devDependencies": {
+    "chai": "^3",
+    "chai-as-promised": "^6",
+    "codeclimate-test-reporter": "^0",
+    "eslint": "^3",
+    "mocha": "^3",
+    "nyc": "^10",
+    "proxyquire": "^1",
+    "sinon": "^1",
+    "sinon-chai": "^2"
+  },
+  "engines": {
+    "node": ">=6.9"
+  }
+}
