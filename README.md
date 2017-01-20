@@ -3,7 +3,7 @@
 [//]: # ([![npm](https://img.shields.io/npm/v/travix-persistent-object.svg)](https://www.npmjs.com/package/travix-persistent-object))
 [![Build Status](https://img.shields.io/travis/Travix-International/travix-persistent-object/master.svg)](https://travis-ci.org/Travix-International/travix-persistent-object)
 [![Code Climate](https://img.shields.io/codeclimate/github/Travix-International/travix-persistent-object.svg)](https://codeclimate.com/github/Travix-International/travix-persistent-object)
-[![Test Coverage](https://codeclimate.com/repos/5881df19c5b6dc006a005465/badges/9e8f4b1d9238b4ebd5aa/coverage.svg)](https://codeclimate.com/repos/5881df19c5b6dc006a005465/coverage)
+[![Test Coverage](https://img.shields.io/codeclimate/coverage/github/Travix-International/travix-persistent-object.svg)](https://codeclimate.com/github/Travix-International/travix-persistent-object/coverage)
 [![Issues](https://img.shields.io/codeclimate/issues/github/Travix-International/travix-persistent-object.svg)](https://codeclimate.com/github/Travix-International/travix-persistent-object/issues)
 
 An object wrapper for NodeJs that automatically (and asynchronously) saves content of an object to a JSON file as soon as the object has been modified.
