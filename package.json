@@ -2,7 +2,7 @@
   "name": "travix-persistent-object",
   "description": "An object wrapper for NodeJs that automatically (and asynchronously) saves content of the object to a JSON file as soon as object has been modified",
   "license": "MIT",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": {
     "name": "Travix International",
     "url": "http://travix.com"

@@ -1,6 +1,6 @@
 # travix-persistent-object
 
-[//]: # ([![npm](https://img.shields.io/npm/v/travix-persistent-object.svg)](https://www.npmjs.com/package/travix-persistent-object))
+[![npm](https://img.shields.io/npm/v/travix-persistent-object.svg)](https://www.npmjs.com/package/travix-persistent-object)
 [![Build Status](https://img.shields.io/travis/Travix-International/travix-persistent-object/master.svg)](https://travis-ci.org/Travix-International/travix-persistent-object)
 [![Code Climate](https://img.shields.io/codeclimate/github/Travix-International/travix-persistent-object.svg)](https://codeclimate.com/github/Travix-International/travix-persistent-object)
 [![Test Coverage](https://img.shields.io/codeclimate/coverage/github/Travix-International/travix-persistent-object.svg)](https://codeclimate.com/github/Travix-International/travix-persistent-object/coverage)
