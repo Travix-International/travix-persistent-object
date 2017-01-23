@@ -12,6 +12,7 @@ An object wrapper for NodeJs that automatically (and asynchronously) saves conte
 
 * [Installation](#installation)
 * [Usage](#usage)
+* [Scripts] (#scripts)
 * [API](#api)
 * [Spec](https://github.com/Travix-International/travix-persistent-object/blob/master/SPEC.md)
 
@@ -109,6 +110,26 @@ Clear array
 Save: { value: 4, property: 5, array: [] }
 Delete all properies
 Save: {}
+```
+
+## Scripts
+
+To run linting of source code and unit tests:
+
+```
+$ npm run lint
+```
+
+To run unit tests and generate coverage report:
+
+```
+$ npm run test
+```
+
+To generate [SPEC.md](https://github.com/Travix-International/travix-persistent-object/blob/master/SPEC.md) file from test specifications:
+
+```
+$ npm run spec
 ```
 
 ## API
