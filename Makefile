@@ -5,12 +5,12 @@ release:
   echo "Releasing version: $(VERSION)"
   git checkout master
   git pull origin master
-  npm run transpile
-  npm run dist
+  npm run lint
+  npm run test
+  npm run spec
   npm version $(VERSION)
   npm publish
   git push --follow-tags
-  npm run docs:publish
 
 changelog:
   git checkout master
@@ -21,5 +21,5 @@ push-changelog:
   git checkout master
   git pull origin master
   git add CHANGELOG.md
-  git commit -m 'changelog updated.'
+  git commit -m 'CHANGELOG updated.'
   git push origin master
