@@ -1,10 +1,10 @@
 # travix-persistent-object
 
-[![npm](https://img.shields.io/npm/v/travix-persistent-object.svg)](https://www.npmjs.com/package/travix-persistent-object)
-[![Build Status](https://img.shields.io/travis/Travix-International/travix-persistent-object/master.svg)](https://travis-ci.org/Travix-International/travix-persistent-object)
-[![Code Climate](https://img.shields.io/codeclimate/github/Travix-International/travix-persistent-object.svg)](https://codeclimate.com/github/Travix-International/travix-persistent-object)
-[![Test Coverage](https://img.shields.io/codeclimate/coverage/github/Travix-International/travix-persistent-object.svg)](https://codeclimate.com/github/Travix-International/travix-persistent-object/coverage)
-[![Issues](https://img.shields.io/codeclimate/issues/github/Travix-International/travix-persistent-object.svg)](https://codeclimate.com/github/Travix-International/travix-persistent-object/issues)
+[![NPM](https://nodei.co/npm/travix-persistent-object.png?compact=true)](https://nodei.co/npm/travix-persistent-object)
+
+[![Build Status](https://travis-ci.org/Travix-International/travix-persistent-object.svg)](https://travis-ci.org/Travix-International/travix-persistent-object)
+[![Code Climate](https://codeclimate.com/github/Travix-International/travix-persistent-object/badges/gpa.svg)](https://codeclimate.com/github/Travix-International/travix-persistent-object)
+[![Test Coverage](https://codeclimate.com/github/Travix-International/travix-persistent-object/badges/coverage.svg)](https://codeclimate.com/github/Travix-International/travix-persistent-object/coverage)
 
 An object wrapper for NodeJs that automatically (and asynchronously) saves content of an object to a JSON file as soon as the object has been modified.
 
