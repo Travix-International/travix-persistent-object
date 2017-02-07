@@ -1,7 +1,8 @@
 {
-  "global": {
+  "globals": {
     "Promise": false,
-    "Proxy": false
+    "Proxy": false,
+    "Symbol": false
   },
   "env": {
     "mocha": true,
