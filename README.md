@@ -28,6 +28,8 @@ $ npm install --save travix-persistent-object
 
 ## Usage
 
+Example code:
+
 ```js
 const { random } = Math;
 const persistent = require('travix-persistent-object');
@@ -84,7 +86,7 @@ const test = () => persistent('path/to/object.json', watcher)
 test().then(delay).then(test);
 ```
 
-Example output:
+Console output:
 
 ```text
 Load: {}
@@ -148,9 +150,15 @@ Creates new persistent object and returns promise eventually resolving to the ob
     * `[proxy]`: Proxy initially returned by `persistentObject`.
 
 The returned proxy will track the following operations for the wrapped object and all the nested objects (depending on `depth` option):
-* delete: `delete object.property`, `delete object.child.property`
-* defineProperty: `Object.defineProperty(object, 'property', { value: 42 })`, `Object.defineProperty(object.child, 'property', { value: 42 })`;
-* set: `object.property = 42`, `object.child.property = 42`.
+* delete:
+  + `delete object.property`
+  + `delete object.child.property`
+* defineProperty:
+  + `Object.defineProperty(object, 'property', { value: 42 })`
+  + `Object.defineProperty(object.child, 'property', { value: 42 })`
+* set:
+  + `object.property = 42`
+  + `object.child.property = 42`
 
 If any nested object contains readonly enumerable property, proxying will fail with "Property ${key} cannot be proxied" error.
 
