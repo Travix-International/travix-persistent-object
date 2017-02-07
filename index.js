@@ -1,40 +1,57 @@
-/* global Promise, Proxy */
-
 'option strict';
 
 const { readFile, writeFile } = require('fs');
 const { nextTick } = process;
 const { parse, stringify } = JSON;
 
-module.exports = function persistent(path, prototype, watcher) {
+const $nest = Symbol();
+
+module.exports = function persistent(path, ...options) {
   if (typeof path !== 'string' || !path.length)
     throw new TypeError('Argument "path" expected to be not empty string');
 
-  if (typeof prototype === 'function') {
-    watcher = prototype;
-    prototype = {};
+  let depth = 0, prototype = {}, watcher;
+  const { length } = options;
+  for (let i = -1; ++i < length;) {
+    const option = options[i];
+    const type = typeof option;
+    switch (type) {
+      case 'function':
+        watcher = option;
+        break;
+      case 'number':
+        depth = option;
+        break;
+      case 'object':
+        prototype = option;
+        break;
+      default:
+        throw new TypeError(`Argument #${i + 1} has unsupported type: ${type}.`);
+    }
   }
-  else if (prototype == null)
-    prototype = {};
-  else if (typeof prototype !== 'object')
-    throw new TypeError('Argument "prototype" expected to be an object');
-
-  if (watcher != null && typeof watcher !== 'function')
-    throw new TypeError('Argument "watcher" expected to be a function');
 
   const CHANGED = 1, PENDING = 2;
   let object, state = 0;
 
   function load() {
-    return new Promise((resolve, reject) => {
-      readFile(path, (error, data) => {
-        return error
+    return new Promise((resolve, reject) =>
+      readFile(path, (error, data) =>
+        error
           ? error.code === 'ENOENT'
-            ? resolve(stringify(prototype))
+            ? resolve(object = wrap(1, prototype))
             : reject(error)
-          : resolve(data)
-      })
-    });
+          : resolve(object = wrap(1, parse(data)))
+      )
+    );
+  }
+
+  function plan() {
+    state |= CHANGED;
+    if (!(state & PENDING)) {
+      state |= PENDING;
+      nextTick(save);
+    }
+    return true;
   }
 
   function save() {
@@ -50,17 +67,8 @@ module.exports = function persistent(path, prototype, watcher) {
     });
   }
 
-  function plan() {
-    state |= CHANGED;
-    if (!(state & PENDING)) {
-      state |= PENDING;
-      nextTick(save);
-    }
-    return true;
-  }
-
   function def(target, key, description) {
-    description.value = wrap(description.value);
+    description.value = wrap(target[$nest] + 1, description.value);
     Object.defineProperty(target, key, description);
     return plan();
   }
@@ -71,20 +79,23 @@ module.exports = function persistent(path, prototype, watcher) {
   }
 
   function set(target, key, value) {
-    target[key] = wrap(value);
+    target[key] = wrap(target[$nest] + 1, value);
     return plan();
   }
 
-  function wrap(target) {
-    if (typeof target !== 'object') return target;
-    for (const key of Object.keys(target)) {
-      const wrapped = wrap(target[key]);
-      target[key] = wrapped;
-      if (target[key] !== wrapped)
-        throw new Error(`Property ${key} cannot be proxied`);
+  function wrap(nest, target) {
+    if (target == null || typeof target !== 'object') return target;
+    if (depth < 1 || nest < depth) {
+      for (const key of Object.getOwnPropertyNames(target)) {
+        const wrapped = wrap(nest + 1, target[key]);
+        target[key] = wrapped;
+        if (target[key] !== wrapped)
+          throw new Error(`Property "${key}" cannot be proxied`);
+      }
     }
+    target[$nest] = nest;
     return new Proxy(target, { defineProperty: def, deleteProperty: del, set });
   }
 
-  return load().then(parse).then(target => object = wrap(target));
+  return load();
 }

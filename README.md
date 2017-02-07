@@ -134,21 +134,23 @@ $ npm run spec
 
 ## API
 
-> persistentObject(path, prototype, watcher)
+> persistentObject(path, ...options)
 
 Creates new persistent object and returns promise eventually resolving to the object wrapped with proxy if it has been successfully loaded, or rejecting with error returned by `fs.readFile` otherwise.
 
 ### Arguments:
 1. `path` (`String`): Path to the file to load object from and to save it to. Should be not empty string;
-2. `[prototype]` (`Object`): Object to use by default when path points to not existing file. Can be any sort of object. If a function passed to this argument, it is considered as `watcher` function;
-3. `[watcher]` (`Function`): Function to be invoked every time when the object has been saved or when attempt to save has failed. Watcher function should accept two arguments:
-  * `[error]` (`Error`): Error returned by `fs.writeFile` function if any, or `null`,
-  * `[proxy]` (`Proxy`): Proxy wrapper initially returned by `persistentObject` function.
+2. `[options]` (`Function`|`Number`|`Object`): Arbitrary duck-typed combination of depth, prototype and watcher arguments:
+  * `[depth=0]`: Depth to track changes on (how deep nested object are recursively prozied). Zero means unlimited depth.
+  * `[prototype={}]`: Object to use by default when path points to non-existing file. Can be any sort of object. If a function passed to this argument, it is considered to be a `watcher`.
+  * `[watcher]`: Function to be called each time the object has been saved or  attempt to save has failed. Accepts two arguments:
+    * `[error]`: Error returned by `fs.writeFile` if any, or `null`,
+    * `[proxy]`: Proxy initially returned by `persistentObject`.
 
-The returned proxy will track the following operations for the wrapped object and all the nested objects (that are in turn also recursively proxied):
-* delete: `delete object.test`,
-* defineProperty: `Object.defineProperty(object, 'test', { value: 42 })`;
-* set: `object.test = 42`.
+The returned proxy will track the following operations for the wrapped object and all the nested objects (depending on `depth` option):
+* delete: `delete object.property`, `delete object.child.property`
+* defineProperty: `Object.defineProperty(object, 'property', { value: 42 })`, `Object.defineProperty(object.child, 'property', { value: 42 })`;
+* set: `object.property = 42`, `object.child.property = 42`.
 
 If any nested object contains readonly enumerable property, proxying will fail with "Property ${key} cannot be proxied" error.
 

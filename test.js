@@ -1,5 +1,3 @@
-/* global beforeEach, describe, it, Promise */
-
 'option strict';
 
 const chai = require('chai');
@@ -46,148 +44,177 @@ describe('persistent', () => {
     fs.writeFile.reset();
   });
 
-  it('is a function', () => {
-    expect(persistent).to.be.a('function');
+  it('is a function', () =>
+    expect(persistent).to.be.a('function')
+  );
+
+  describe('persistent(path)', () => {
+    it('throws TypeError if path is not a string', () =>
+      expect(() => persistent(42)).to.throw(TypeError)
+    );
   });
 
-  it('throws TypeError if first argument (path) is not string', () => {
-    expect(() => persistent(42)).to.throw(TypeError);
-  });
+  describe('persistent(path:string)', () => {
+    it('calls fs.readFile with arguments (path)', () =>
+      persistent('path').then(() => expect(fs.readFile).to.have.been.calledWith('path'))
+    );
 
-  it('throws TypeError if second argument (prototype or watcher) is not function or object', () => {
-    expect(() => persistent('path', 42)).to.throw(TypeError);
-  });
+    it('eventually resolves to object parsed from json returned by fs.readFile', () => {
+      const object = { test: 42 };
+      fs.readFile.result = stringify(object);
+      return expect(persistent('path')).to.be.fulfilled.and.eventually.deep.equal(object);
+    });
 
-  it('throws TypeError if third argument (watcher) is not function', () => {
-    expect(() => persistent('path', {}, 42)).to.throw(TypeError);
-  });
+    it('eventually resolves to empty object when fs.readFile reports ENOENT error', () => {
+      fs.readFile.error = ENOENT;
+      return expect(persistent('path')).to.be.fulfilled.and.eventually.be.empty;
+    });
 
-  it('calls fs.readFile with path argument', () => {
-    return persistent('path')
-      .then(() => expect(fs.readFile).to.have.been.calledWith('path'));
-  });
+    it('eventually rejects with error reported by fs.readFile if error is not ENOENT', () => {
+      fs.readFile.error = EACCES;
+      return expect(persistent('path')).to.be.rejectedWith(EACCES);
+    });
 
-  it('eventually resolves to object parsed from json returned by fs.readFile', () => {
-    const object = { test: 42 };
-    fs.readFile.result = stringify(object);
-    return expect(persistent('path')).to.be.fulfilled.and.eventually.deep.equal(object);
-  });
+    it('eventually calls fs.writeFile once with arguments (path, json) when object property is defined', () =>
+      persistent('path')
+        .then(object =>
+          Object.defineProperty(object, 'test', {})
+        )
+        .then(defer)
+        .then(object =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
+        )
+    );
 
-  it('eventually resolves to empty object when fs.readFile returns ENOENT error', () => {
-    fs.readFile.error = ENOENT;
-    return expect(persistent('path')).to.be.fulfilled.and.eventually.be.empty;
-  });
+    it('eventually calls fs.writeFile once with arguments (path, json) when object property is set', () =>
+      persistent('path')
+        .then(object => (object.test = 42, object))
+        .then(defer)
+        .then(object =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
+        )
+    );
 
-  it('eventually resolves to prototype object when fs.readFile returns ENOENT error', () => {
-    const prototype = { test: 42 };
-    fs.readFile.error = ENOENT;
-    return expect(persistent('path', prototype)).to.be.fulfilled.and.eventually.deep.equal(prototype);
-  });
+    it('eventually calls fs.writeFile once when object is modified several times together', () =>
+      persistent('path')
+        .then(object => (object.test = 42, delete object.test, object))
+        .then(defer)
+        .then(() =>
+          expect(fs.writeFile).to.have.been.calledOnce
+        )
+    );
 
-  it('eventually rejects with error returned from fs.readFile when error is not ENOENT', () => {
-    fs.readFile.error = EACCES;
-    return expect(persistent('path')).to.be.rejectedWith(EACCES);
-  });
+    it('eventually calls fs.writeFile again if object is modified when saving is in progress', () => {
+      fs.writeFile.delay = true;
+      return persistent('path')
+        .then(object => (object.test = 42, object))
+        .then(defer)
+        .then(object => (fs.writeFile.delay = false, object.test = 24, object))
+        .then(delay)
+        .then(() =>
+          expect(fs.writeFile).to.have.been.calledTwice
+        );
+    });
 
-  it('eventually calls fs.writeFile once with arguments (path, json) when object property was deleted', () => {
-    fs.readFile.error = ENOENT;
-    return persistent('path', { test: 42 })
-      .then(object => (delete object.test, object))
-      .then(defer)
-      .then(object =>
-        expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
-      );
-  });
+    it('eventually throws error reported by fs.writeFile if watcher is not specified', () => {
+      fs.writeFile.error = EACCES;
+      const uncaughtException = spy();
+      process.removeAllListeners('uncaughtException');
+      process.on('uncaughtException', uncaughtException);
+      return persistent('path')
+        .then(object => (object.test = 42, object))
+        .then(defer)
+        .then(() =>
+          expect(uncaughtException).to.have.been.calledWith(EACCES)
+        );
+    });
 
-  it('eventually calls fs.writeFile once with arguments (path, json) when object property was defined', () => {
-    return persistent('path')
-      .then(object =>
-        Object.defineProperty(object, 'test', {})
+    it('throws TypeError if property being defined cannot be proxied', () =>
+      persistent('path').then(object =>
+        expect(() => Object.defineProperty(object, 'test', { value: {} })).to.throw(TypeError)
       )
-      .then(defer)
-      .then(object =>
-        expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
-      );
+    );
+
+    it('throws TypeError if property being set cannot be proxied', () => {
+      const property = Object.defineProperty({}, 'test', { value: {} });
+      return persistent('path').then(object =>
+        expect(() => object.property = property).to.throw(Error)
+      )
+    });
   });
 
-  it('eventually calls fs.writeFile once with path and json arguments when object property was set', () => {
-    return persistent('path')
-      .then(object => (object.test = 42, object))
-      .then(defer)
-      .then(object =>
-        expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
-      );
+  describe('persistent(path:string, depth:number)', () => {
+    it('tracks object changes to specified depth only', () => {
+      fs.readFile.result = stringify({ property: { value: 42 } });
+      return persistent('path', 1)
+        .then(object => (object.property.value = 24, object))
+        .then(defer)
+        .then(() =>
+          expect(fs.writeFile).to.not.have.been.called
+        );
+    });
   });
 
-  it('eventually calls fs.writeFile once with path and json arguments when object subproperty was set', () => {
-    fs.readFile.error = ENOENT;
-    return persistent('path', { test: {} })
-      .then(object => (object.test.value = 42, object))
-      .then(defer)
-      .then(object =>
-        expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
-      );
+  describe('persistent(path:string, prototype:object)', () => {
+    it('eventually resolves to prototype object when fs.readFile reports ENOENT', () => {
+      const prototype = { test: 42 };
+      fs.readFile.error = ENOENT;
+      return expect(persistent('path', prototype)).to.be.fulfilled.and.eventually.deep.equal(prototype);
+    });
+
+    it('eventually calls fs.writeFile once with arguments (path, json) after property is deleted', () => {
+      fs.readFile.error = ENOENT;
+      return persistent('path', { test: 42 })
+        .then(object => (delete object.test, object))
+        .then(defer)
+        .then(object =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
+        );
+    });
+
+    it('eventually calls fs.writeFile once with arguments (path, json) after nested property is set', () => {
+      fs.readFile.error = ENOENT;
+      return persistent('path', { test: {} })
+        .then(object => (object.test.value = 42, object))
+        .then(defer)
+        .then(object =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
+        );
+    });
   });
 
-  it('eventually calls fs.writeFile once when object was modified several times promptly', () => {
-    return persistent('path')
-      .then(object => (object.test = 42, delete object.test, object))
-      .then(defer)
-      .then(() =>
-        expect(fs.writeFile).to.have.been.calledOnce
-      );
+  describe('persistent(path:string, watcher:function)', () => {
+    it('eventually calls watcher with arguments (null, object) after object is saved', () => {
+      const watcher = spy();
+      return persistent('path', watcher)
+        .then(object => (object.test = 42, object))
+        .then(defer)
+        .then(object =>
+          expect(watcher).to.have.been.calledOnce.and.calledAfter(fs.writeFile).and.calledWith(null, object)
+        );
+    });
+
+    it('eventually calls watcher with arguments (error, object) when fs.writeFile reports error', () => {
+      fs.writeFile.error = EACCES;
+      const watcher = spy();
+      return persistent('path', watcher)
+        .then(object => (object.test = 42, object))
+        .then(defer)
+        .then(object =>
+          expect(watcher).to.have.been.calledWith(EACCES, object)
+        );
+    });
   });
 
-  it('eventually calls fs.writeFile again if object was modified when saving is in progress', () => {
-    fs.writeFile.delay = true;
-    return persistent('path')
-      .then(object => (object.test = 42, object))
-      .then(defer)
-      .then(object => (fs.writeFile.delay = false, object.test = 24, object))
-      .then(delay)
-      .then(() =>
-        expect(fs.writeFile).to.have.been.calledTwice
-      );
+  describe('persistent(path:string, option)', () => {
+    it('throws TypeError if options is not object or function (watcher) or number (depth)', () => {
+      expect(() => persistent('path', true)).to.throw(TypeError)
+    });
   });
 
-  it('eventually calls watcher with arguments (null, object) after object is saved', () => {
-    const watcher = spy();
-    return persistent('path', watcher)
-      .then(object => (object.test = 42, object))
-      .then(defer)
-      .then(object =>
-        expect(watcher).to.have.been.calledOnce.and.calledAfter(fs.writeFile).and.calledWith(null, object)
-      );
-  });
-
-  it('eventually calls watcher with arguments (error, object) when error was returned from fs.writeFile', () => {
-    fs.writeFile.error = EACCES;
-    const watcher = spy();
-    return persistent('path', watcher)
-      .then(object => (object.test = 42, object))
-      .then(defer)
-      .then(object =>
-        expect(watcher).to.have.been.calledWith(EACCES, object)
-      );
-  });
-
-  it('eventually throws error returned from fs.writeFile when watcher is not specified', () => {
-    fs.writeFile.error = EACCES;
-    const uncaughtException = spy();
-    process.removeAllListeners('uncaughtException');
-    process.on('uncaughtException', uncaughtException);
-    return persistent('path')
-      .then(object => (object.test = 42, object))
-      .then(defer)
-      .then(() =>
-        expect(uncaughtException).to.have.been.calledWith(EACCES)
-      );
-  });
-
-  it('throws error if property being set cannot be proxied', () => {
-    const property = Object.defineProperty({}, 'test', { enumerable: true, value: {} });
-    return persistent('path').then(object => {
-      expect(() => object.test = property).to.throw;
+  describe('persistent(path:string, prototype:object, option)', () => {
+    it('throws TypeError if options is not object or function (watcher) or number (depth)', () => {
+      expect(() => persistent('path', [], true)).to.throw(TypeError)
     });
   });
 });

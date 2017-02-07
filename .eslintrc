@@ -1,5 +1,14 @@
 {
-  "env": { "node": true },
+  "global": {
+    "Promise": false,
+    "Proxy": false
+  },
+  "env": {
+    "mocha": true,
+    "node": true
+  },
   "extends": "eslint:recommended",
-  "parserOptions": { "ecmaVersion": 6 }
+  "parserOptions": {
+    "ecmaVersion": 6
+  }
 }
