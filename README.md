@@ -12,7 +12,7 @@ An object wrapper for NodeJs that automatically (and asynchronously) saves conte
 
 * [Installation](#installation)
 * [Usage](#usage)
-* [Scripts] (#scripts)
+* [Scripts](#scripts)
 * [API](#api)
 * [Spec](https://github.com/Travix-International/travix-persistent-object/blob/master/SPEC.md)
 
@@ -151,16 +151,16 @@ Creates new persistent object and returns promise eventually resolving to the ob
 
 The returned proxy will track the following operations for the wrapped object and all the nested objects (depending on `depth` option):
 * delete:
-  + `delete object.property`
-  + `delete object.child.property`
+  - `delete object.property`
+  - `delete object.child.property`
 * defineProperty:
-  + `Object.defineProperty(object, 'property', { value: 42 })`
-  + `Object.defineProperty(object.child, 'property', { value: 42 })`
+  - `Object.defineProperty(object, 'property', { value: 42 })`
+  - `Object.defineProperty(object.child, 'property', { value: 42 })`
 * set:
-  + `object.property = 42`
-  + `object.child.property = 42`
+  - `object.property = 42`
+  - `object.child.property = 42`
 
-If any nested object contains readonly enumerable property, proxying will fail with "Property ${key} cannot be proxied" error.
+> If any nested object contains readonly enumerable property, proxying will fail with "Property ${key} cannot be proxied" error.
 
 # License
 

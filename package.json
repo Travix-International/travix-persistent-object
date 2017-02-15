@@ -4,7 +4,7 @@
   "keywords": [
     "proxy", "persistent", "auto save"
   ],
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "MIT",
   "homepage": "https://github.com/Travix-International/travix-persistent-object#readme",
   "repository" : {
