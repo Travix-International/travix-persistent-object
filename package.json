@@ -2,12 +2,14 @@
   "name": "travix-persistent-object",
   "description": "An object wrapper for NodeJs that automatically (and asynchronously) saves content of the object to a JSON file as soon as object has been modified",
   "keywords": [
-    "proxy", "persistent", "auto save"
+    "proxy",
+    "persistent",
+    "auto save"
   ],
-  "version": "0.2.1",
+  "version": "0.2.2",
   "license": "MIT",
   "homepage": "https://github.com/Travix-International/travix-persistent-object#readme",
-  "repository" : {
+  "repository": {
     "type": "git",
     "url": "https://github.com/Travix-International/travix-persistent-object.git"
   },
@@ -29,13 +31,17 @@
     "index.js"
   ],
   "scripts": {
-    "check": "mocha --bail test.js",
-    "doc": "mocha --reporter markdown test.js > SPEC.md",
     "lint": "eslint *.js",
     "prepublish": "npm run lint && npm run test",
+    "spec": "mocha --reporter markdown test.js > SPEC.md",
     "test": "nyc --reporter=lcov mocha test.js && nyc report",
     "travis": "codeclimate-test-reporter < coverage/lcov.info"
   },
+  "pre-commit": [
+    "lint",
+    "test",
+    "spec"
+  ],
   "devDependencies": {
     "chai": "^3",
     "chai-as-promised": "^6",
@@ -43,6 +49,7 @@
     "eslint": "^3",
     "mocha": "^3",
     "nyc": "^10",
+    "pre-commit": "^1",
     "proxyquire": "^1",
     "sinon": "^1",
     "sinon-chai": "^2"
