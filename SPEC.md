@@ -14,7 +14,7 @@
 is a function.
 
 ```js
-expect(persistent).to.be.a('function')
+return expect(persistent).to.be.a('function')
 ```
 
 <a name="persistent-persistentpath"></a>
@@ -22,7 +22,7 @@ expect(persistent).to.be.a('function')
 throws TypeError if path is not a string.
 
 ```js
-expect(() => persistent(42)).to.throw(TypeError)
+return expect(() => persistent(42)).to.throw(TypeError)
 ```
 
 <a name="persistent-persistentpathstring"></a>
@@ -30,7 +30,7 @@ expect(() => persistent(42)).to.throw(TypeError)
 calls fs.readFile with arguments (path).
 
 ```js
-persistent('path').then(() => expect(fs.readFile).to.have.been.calledWith('path'))
+return persistent('path').then(() => expect(fs.readFile).to.have.been.calledWith('path'))
 ```
 
 eventually resolves to object parsed from json returned by fs.readFile.
@@ -58,7 +58,7 @@ return expect(persistent('path')).to.be.rejectedWith(EACCES);
 eventually calls fs.writeFile once with arguments (path, json) when object property is defined.
 
 ```js
-persistent('path')
+return persistent('path')
   .then(object => Object.defineProperty(object, 'test', {}))
   .then(defer)
   .then(object =>
@@ -70,7 +70,7 @@ eventually calls fs.writeFile once with arguments (path, json) when object prope
 
 ```js
 fs.readFile.error = ENOENT;
-persistent('path', { test: 42 })
+return persistent('path', { test: 42 })
   .then(object => (delete object.test, object))
   .then(defer)
   .then(object =>
@@ -81,7 +81,7 @@ persistent('path', { test: 42 })
 eventually calls fs.writeFile once with arguments (path, json) when object property is set.
 
 ```js
-persistent('path')
+return persistent('path')
   .then(object => (object.test = 42, object))
   .then(defer)
   .then(object =>
@@ -93,7 +93,7 @@ eventually calls fs.writeFile once with arguments (path, json) when array length
 
 ```js
 fs.readFile.error = ENOENT;
-persistent('path', [42])
+return persistent('path', [42])
   .then(array => (array.length = 0, array))
   .then(defer)
   .then(array =>
@@ -105,7 +105,7 @@ eventually calls fs.writeFile once with arguments (path, json) when array length
 
 ```js
 fs.readFile.error = ENOENT;
-persistent('path', [])
+return persistent('path', [])
   .then(array => (array.length = 1, array))
   .then(defer)
   .then(array =>
@@ -117,7 +117,7 @@ eventually calls fs.writeFile once with arguments (path, json) when array is fil
 
 ```js
 fs.readFile.error = ENOENT;
-persistent('path', [1, 2])
+return persistent('path', [1, 2])
   .then(array => (array.fill(42), array))
   .then(defer)
   .then(array =>
@@ -129,7 +129,7 @@ eventually calls fs.writeFile once with arguments (path, json) when array item i
 
 ```js
 fs.readFile.error = ENOENT;
-persistent('path', [42])
+return persistent('path', [42])
   .then(array => (array.pop(), array))
   .then(defer)
   .then(array =>
@@ -141,7 +141,7 @@ eventually calls fs.writeFile once with arguments (path, json) when array item i
 
 ```js
 fs.readFile.error = ENOENT;
-persistent('path', [])
+return persistent('path', [])
   .then(array => (array.push(42), array))
   .then(defer)
   .then(array =>
@@ -153,7 +153,7 @@ eventually calls fs.writeFile once with arguments (path, json) when array item i
 
 ```js
 fs.readFile.error = ENOENT;
-persistent('path', [42])
+return persistent('path', [42])
   .then(array => (array.splice(0, 1), array))
   .then(defer)
   .then(array =>
@@ -165,7 +165,7 @@ eventually calls fs.writeFile once with arguments (path, json) when array item i
 
 ```js
 fs.readFile.error = ENOENT;
-persistent('path', [42])
+return persistent('path', [42])
   .then(array => (array.splice(0, 0, 42), array))
   .then(defer)
   .then(array =>
@@ -177,7 +177,7 @@ eventually calls fs.writeFile once with arguments (path, json) when array is rev
 
 ```js
 fs.readFile.error = ENOENT;
-persistent('path', [1, 2])
+return persistent('path', [1, 2])
   .then(array => (array.reverse(), array))
   .then(defer)
   .then(array =>
@@ -189,7 +189,7 @@ eventually calls fs.writeFile once with arguments (path, json) when array item i
 
 ```js
 fs.readFile.error = ENOENT;
-persistent('path', [42])
+return persistent('path', [42])
   .then(array => (array.shift(), array))
   .then(defer)
   .then(array =>
@@ -201,7 +201,7 @@ eventually calls fs.writeFile once with arguments (path, json) when array item i
 
 ```js
 fs.readFile.error = ENOENT;
-persistent('path', [2, 1, 3])
+return persistent('path', [2, 1, 3])
   .then(array => (array.sort(), array))
   .then(defer)
   .then(array =>
@@ -213,7 +213,7 @@ eventually calls fs.writeFile once with arguments (path, json) when array item i
 
 ```js
 fs.readFile.error = ENOENT;
-persistent('path', [])
+return persistent('path', [])
   .then(array => (array.unshift(42), array))
   .then(defer)
   .then(array =>
@@ -239,7 +239,7 @@ return Promise.all([ persistent('path0'), persistent('path1') ])
 eventually calls fs.writeFile once when object is modified several times together.
 
 ```js
-persistent('path')
+return persistent('path')
   .then(object => (object.test = 42, delete object.test, object))
   .then(defer)
   .then(() =>
@@ -279,7 +279,7 @@ return persistent('path')
 throws TypeError if property being defined cannot be proxied.
 
 ```js
-persistent('path').then(object =>
+return persistent('path').then(object =>
   expect(() => Object.defineProperty(object, 'test', { value: {} })).to.throw(TypeError)
 )
 ```
@@ -397,7 +397,7 @@ return persistent('path', watcher)
 throws TypeError if options is not object or function (watcher) or number (depth).
 
 ```js
-expect(() => persistent('path', true)).to.throw(TypeError)
+return expect(() => persistent('path', true)).to.throw(TypeError)
 ```
 
 <a name="persistent-persistentpathstring-prototypeobject-option"></a>
@@ -405,6 +405,6 @@ expect(() => persistent('path', true)).to.throw(TypeError)
 throws TypeError if options is not object or function (watcher) or number (depth).
 
 ```js
-expect(() => persistent('path', [], true)).to.throw(TypeError)
+return expect(() => persistent('path', [], true)).to.throw(TypeError)
 ```
 
