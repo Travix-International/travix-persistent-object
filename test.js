@@ -49,15 +49,15 @@ describe('persistent', () => {
   );
 
   describe('persistent(path)', () => {
-    it('throws TypeError if path is not a string', () =>
+    it('throws TypeError if path is not a string', () => {
       expect(() => persistent(42)).to.throw(TypeError)
-    );
+    });
   });
 
   describe('persistent(path:string)', () => {
-    it('calls fs.readFile with arguments (path)', () =>
+    it('calls fs.readFile with arguments (path)', () => {
       persistent('path').then(() => expect(fs.readFile).to.have.been.calledWith('path'))
-    );
+    });
 
     it('eventually resolves to object parsed from json returned by fs.readFile', () => {
       const object = { test: 42 };
@@ -75,34 +75,165 @@ describe('persistent', () => {
       return expect(persistent('path')).to.be.rejectedWith(EACCES);
     });
 
-    it('eventually calls fs.writeFile once with arguments (path, json) when object property is defined', () =>
+    it('eventually calls fs.writeFile once with arguments (path, json) when object property is defined', () => {
       persistent('path')
-        .then(object =>
-          Object.defineProperty(object, 'test', {})
-        )
+        .then(object => Object.defineProperty(object, 'test', {}))
         .then(defer)
         .then(object =>
           expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
         )
-    );
+    });
 
-    it('eventually calls fs.writeFile once with arguments (path, json) when object property is set', () =>
+    it('eventually calls fs.writeFile once with arguments (path, json) when object property is deleted', () => {
+      fs.readFile.error = ENOENT;
+      persistent('path', { test: 42 })
+        .then(object => (delete object.test, object))
+        .then(defer)
+        .then(object =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
+        )
+    });
+
+    it('eventually calls fs.writeFile once with arguments (path, json) when object property is set', () => {
       persistent('path')
         .then(object => (object.test = 42, object))
         .then(defer)
         .then(object =>
           expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
         )
-    );
+    });
 
-    it('eventually calls fs.writeFile once when object is modified several times together', () =>
+    it('eventually calls fs.writeFile once with arguments (path, json) when array length is decreased', () => {
+      fs.readFile.error = ENOENT;
+      persistent('path', [42])
+        .then(array => (array.length = 0, array))
+        .then(defer)
+        .then(array =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+        )
+    });
+
+    it('eventually calls fs.writeFile once with arguments (path, json) when array length is increased', () => {
+      fs.readFile.error = ENOENT;
+      persistent('path', [])
+        .then(array => (array.length = 1, array))
+        .then(defer)
+        .then(array =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+        )
+    });
+
+    it('eventually calls fs.writeFile once with arguments (path, json) when array is filled with item', () => {
+      fs.readFile.error = ENOENT;
+      persistent('path', [1, 2])
+        .then(array => (array.fill(42), array))
+        .then(defer)
+        .then(array =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+        )
+    });
+
+    it('eventually calls fs.writeFile once with arguments (path, json) when array item is popped', () => {
+      fs.readFile.error = ENOENT;
+      persistent('path', [42])
+        .then(array => (array.pop(), array))
+        .then(defer)
+        .then(array =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+        )
+    });
+
+    it('eventually calls fs.writeFile once with arguments (path, json) when array item is pushed', () => {
+      fs.readFile.error = ENOENT;
+      persistent('path', [])
+        .then(array => (array.push(42), array))
+        .then(defer)
+        .then(array =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+        )
+    });
+
+    it('eventually calls fs.writeFile once with arguments (path, json) when array item is removed with splice', () => {
+      fs.readFile.error = ENOENT;
+      persistent('path', [42])
+        .then(array => (array.splice(0, 1), array))
+        .then(defer)
+        .then(array =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+        )
+    });
+
+    it('eventually calls fs.writeFile once with arguments (path, json) when array item is added with splice', () => {
+      fs.readFile.error = ENOENT;
+      persistent('path', [42])
+        .then(array => (array.splice(0, 0, 42), array))
+        .then(defer)
+        .then(array =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+        )
+    });
+
+    it('eventually calls fs.writeFile once with arguments (path, json) when array is reversed', () => {
+      fs.readFile.error = ENOENT;
+      persistent('path', [1, 2])
+        .then(array => (array.reverse(), array))
+        .then(defer)
+        .then(array =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+        )
+    });
+
+    it('eventually calls fs.writeFile once with arguments (path, json) when array item is shifted', () => {
+      fs.readFile.error = ENOENT;
+      persistent('path', [42])
+        .then(array => (array.shift(), array))
+        .then(defer)
+        .then(array =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+        )
+    });
+
+    it('eventually calls fs.writeFile once with arguments (path, json) when array item is sorted', () => {
+      fs.readFile.error = ENOENT;
+      persistent('path', [2, 1, 3])
+        .then(array => (array.sort(), array))
+        .then(defer)
+        .then(array =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+        )
+    });
+
+    it('eventually calls fs.writeFile once with arguments (path, json) when array item is unshifted', () => {
+      fs.readFile.error = ENOENT;
+      persistent('path', [])
+        .then(array => (array.unshift(42), array))
+        .then(defer)
+        .then(array =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+        )
+    });
+
+    it('eventually calls fs.writeFile twice with arguments (path, json) when an object shared between two persistent objects is changed', () => {
+      fs.readFile.error = ENOENT;
+      const shared = {};
+      return Promise.all([ persistent('path0'), persistent('path1') ])
+        .then(objects => (objects[0].shared = objects[1].shared = shared, shared.test = 42, objects))
+        .then(defer)
+        .then(objects =>
+          expect(fs.writeFile).to.have.been.calledTwice
+            .and.calledWith('path0', stringify(objects[0]))
+            .and.calledWith('path1', stringify(objects[1]))
+        );
+    });
+
+    it('eventually calls fs.writeFile once when object is modified several times together', () => {
       persistent('path')
         .then(object => (object.test = 42, delete object.test, object))
         .then(defer)
         .then(() =>
           expect(fs.writeFile).to.have.been.calledOnce
         )
-    );
+    });
 
     it('eventually calls fs.writeFile again if object is modified when saving is in progress', () => {
       fs.writeFile.delay = true;
@@ -129,11 +260,11 @@ describe('persistent', () => {
         );
     });
 
-    it('throws TypeError if property being defined cannot be proxied', () =>
+    it('throws TypeError if property being defined cannot be proxied', () => {
       persistent('path').then(object =>
         expect(() => Object.defineProperty(object, 'test', { value: {} })).to.throw(TypeError)
       )
-    );
+    });
 
     it('throws TypeError if property being set cannot be proxied', () => {
       const property = Object.defineProperty({}, 'test', { value: {} });
@@ -176,6 +307,26 @@ describe('persistent', () => {
       fs.readFile.error = ENOENT;
       return persistent('path', { test: {} })
         .then(object => (object.test.value = 42, object))
+        .then(defer)
+        .then(object =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
+        );
+    });
+
+    it('eventually calls fs.writeFile once with arguments (path, json) after nested array item is added', () => {
+      fs.readFile.error = ENOENT;
+      return persistent('path', { array: [] })
+        .then(object => (object.array.push(42), object))
+        .then(defer)
+        .then(object =>
+          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
+        );
+    });
+
+    it('eventually calls fs.writeFile once with arguments (path, json) after nested array item is changed', () => {
+      fs.readFile.error = ENOENT;
+      return persistent('path', { array: [1] })
+        .then(object => (object.array[0] = 42, object))
         .then(defer)
         .then(object =>
           expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
