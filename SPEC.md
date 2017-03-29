@@ -59,35 +59,192 @@ eventually calls fs.writeFile once with arguments (path, json) when object prope
 
 ```js
 persistent('path')
-        .then(object =>
-          Object.defineProperty(object, 'test', {})
-        )
-        .then(defer)
-        .then(object =>
-          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
-        )
+  .then(object => Object.defineProperty(object, 'test', {}))
+  .then(defer)
+  .then(object =>
+    expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
+  )
+```
+
+eventually calls fs.writeFile once with arguments (path, json) when object property is deleted.
+
+```js
+fs.readFile.error = ENOENT;
+persistent('path', { test: 42 })
+  .then(object => (delete object.test, object))
+  .then(defer)
+  .then(object =>
+    expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
+  )
 ```
 
 eventually calls fs.writeFile once with arguments (path, json) when object property is set.
 
 ```js
 persistent('path')
-        .then(object => (object.test = 42, object))
-        .then(defer)
-        .then(object =>
-          expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
-        )
+  .then(object => (object.test = 42, object))
+  .then(defer)
+  .then(object =>
+    expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
+  )
+```
+
+eventually calls fs.writeFile once with arguments (path, json) when array length is decreased.
+
+```js
+fs.readFile.error = ENOENT;
+persistent('path', [42])
+  .then(array => (array.length = 0, array))
+  .then(defer)
+  .then(array =>
+    expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+  )
+```
+
+eventually calls fs.writeFile once with arguments (path, json) when array length is increased.
+
+```js
+fs.readFile.error = ENOENT;
+persistent('path', [])
+  .then(array => (array.length = 1, array))
+  .then(defer)
+  .then(array =>
+    expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+  )
+```
+
+eventually calls fs.writeFile once with arguments (path, json) when array is filled with item.
+
+```js
+fs.readFile.error = ENOENT;
+persistent('path', [1, 2])
+  .then(array => (array.fill(42), array))
+  .then(defer)
+  .then(array =>
+    expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+  )
+```
+
+eventually calls fs.writeFile once with arguments (path, json) when array item is popped.
+
+```js
+fs.readFile.error = ENOENT;
+persistent('path', [42])
+  .then(array => (array.pop(), array))
+  .then(defer)
+  .then(array =>
+    expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+  )
+```
+
+eventually calls fs.writeFile once with arguments (path, json) when array item is pushed.
+
+```js
+fs.readFile.error = ENOENT;
+persistent('path', [])
+  .then(array => (array.push(42), array))
+  .then(defer)
+  .then(array =>
+    expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+  )
+```
+
+eventually calls fs.writeFile once with arguments (path, json) when array item is removed with splice.
+
+```js
+fs.readFile.error = ENOENT;
+persistent('path', [42])
+  .then(array => (array.splice(0, 1), array))
+  .then(defer)
+  .then(array =>
+    expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+  )
+```
+
+eventually calls fs.writeFile once with arguments (path, json) when array item is added with splice.
+
+```js
+fs.readFile.error = ENOENT;
+persistent('path', [42])
+  .then(array => (array.splice(0, 0, 42), array))
+  .then(defer)
+  .then(array =>
+    expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+  )
+```
+
+eventually calls fs.writeFile once with arguments (path, json) when array is reversed.
+
+```js
+fs.readFile.error = ENOENT;
+persistent('path', [1, 2])
+  .then(array => (array.reverse(), array))
+  .then(defer)
+  .then(array =>
+    expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+  )
+```
+
+eventually calls fs.writeFile once with arguments (path, json) when array item is shifted.
+
+```js
+fs.readFile.error = ENOENT;
+persistent('path', [42])
+  .then(array => (array.shift(), array))
+  .then(defer)
+  .then(array =>
+    expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+  )
+```
+
+eventually calls fs.writeFile once with arguments (path, json) when array item is sorted.
+
+```js
+fs.readFile.error = ENOENT;
+persistent('path', [2, 1, 3])
+  .then(array => (array.sort(), array))
+  .then(defer)
+  .then(array =>
+    expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+  )
+```
+
+eventually calls fs.writeFile once with arguments (path, json) when array item is unshifted.
+
+```js
+fs.readFile.error = ENOENT;
+persistent('path', [])
+  .then(array => (array.unshift(42), array))
+  .then(defer)
+  .then(array =>
+    expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(array))
+  )
+```
+
+eventually calls fs.writeFile twice with arguments (path, json) when an object shared between two persistent objects is changed.
+
+```js
+fs.readFile.error = ENOENT;
+const shared = {};
+return Promise.all([ persistent('path0'), persistent('path1') ])
+  .then(objects => (objects[0].shared = objects[1].shared = shared, shared.test = 42, objects))
+  .then(defer)
+  .then(objects =>
+    expect(fs.writeFile).to.have.been.calledTwice
+      .and.calledWith('path0', stringify(objects[0]))
+      .and.calledWith('path1', stringify(objects[1]))
+  );
 ```
 
 eventually calls fs.writeFile once when object is modified several times together.
 
 ```js
 persistent('path')
-        .then(object => (object.test = 42, delete object.test, object))
-        .then(defer)
-        .then(() =>
-          expect(fs.writeFile).to.have.been.calledOnce
-        )
+  .then(object => (object.test = 42, delete object.test, object))
+  .then(defer)
+  .then(() =>
+    expect(fs.writeFile).to.have.been.calledOnce
+  )
 ```
 
 eventually calls fs.writeFile again if object is modified when saving is in progress.
@@ -123,8 +280,8 @@ throws TypeError if property being defined cannot be proxied.
 
 ```js
 persistent('path').then(object =>
-        expect(() => Object.defineProperty(object, 'test', { value: {} })).to.throw(TypeError)
-      )
+  expect(() => Object.defineProperty(object, 'test', { value: {} })).to.throw(TypeError)
+)
 ```
 
 throws TypeError if property being set cannot be proxied.
@@ -178,6 +335,30 @@ eventually calls fs.writeFile once with arguments (path, json) after nested prop
 fs.readFile.error = ENOENT;
 return persistent('path', { test: {} })
   .then(object => (object.test.value = 42, object))
+  .then(defer)
+  .then(object =>
+    expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
+  );
+```
+
+eventually calls fs.writeFile once with arguments (path, json) after nested array item is added.
+
+```js
+fs.readFile.error = ENOENT;
+return persistent('path', { array: [] })
+  .then(object => (object.array.push(42), object))
+  .then(defer)
+  .then(object =>
+    expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))
+  );
+```
+
+eventually calls fs.writeFile once with arguments (path, json) after nested array item is changed.
+
+```js
+fs.readFile.error = ENOENT;
+return persistent('path', { array: [1] })
+  .then(object => (object.array[0] = 42, object))
   .then(defer)
   .then(object =>
     expect(fs.writeFile).to.have.been.calledOnce.and.calledWith('path', stringify(object))

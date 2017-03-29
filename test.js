@@ -44,19 +44,19 @@ describe('persistent', () => {
     fs.writeFile.reset();
   });
 
-  it('is a function', () =>
-    expect(persistent).to.be.a('function')
-  );
+  it('is a function', () => {
+    return expect(persistent).to.be.a('function')
+  });
 
   describe('persistent(path)', () => {
     it('throws TypeError if path is not a string', () => {
-      expect(() => persistent(42)).to.throw(TypeError)
+      return expect(() => persistent(42)).to.throw(TypeError)
     });
   });
 
   describe('persistent(path:string)', () => {
     it('calls fs.readFile with arguments (path)', () => {
-      persistent('path').then(() => expect(fs.readFile).to.have.been.calledWith('path'))
+      return persistent('path').then(() => expect(fs.readFile).to.have.been.calledWith('path'))
     });
 
     it('eventually resolves to object parsed from json returned by fs.readFile', () => {
@@ -76,7 +76,7 @@ describe('persistent', () => {
     });
 
     it('eventually calls fs.writeFile once with arguments (path, json) when object property is defined', () => {
-      persistent('path')
+      return persistent('path')
         .then(object => Object.defineProperty(object, 'test', {}))
         .then(defer)
         .then(object =>
@@ -86,7 +86,7 @@ describe('persistent', () => {
 
     it('eventually calls fs.writeFile once with arguments (path, json) when object property is deleted', () => {
       fs.readFile.error = ENOENT;
-      persistent('path', { test: 42 })
+      return persistent('path', { test: 42 })
         .then(object => (delete object.test, object))
         .then(defer)
         .then(object =>
@@ -95,7 +95,7 @@ describe('persistent', () => {
     });
 
     it('eventually calls fs.writeFile once with arguments (path, json) when object property is set', () => {
-      persistent('path')
+      return persistent('path')
         .then(object => (object.test = 42, object))
         .then(defer)
         .then(object =>
@@ -105,7 +105,7 @@ describe('persistent', () => {
 
     it('eventually calls fs.writeFile once with arguments (path, json) when array length is decreased', () => {
       fs.readFile.error = ENOENT;
-      persistent('path', [42])
+      return persistent('path', [42])
         .then(array => (array.length = 0, array))
         .then(defer)
         .then(array =>
@@ -115,7 +115,7 @@ describe('persistent', () => {
 
     it('eventually calls fs.writeFile once with arguments (path, json) when array length is increased', () => {
       fs.readFile.error = ENOENT;
-      persistent('path', [])
+      return persistent('path', [])
         .then(array => (array.length = 1, array))
         .then(defer)
         .then(array =>
@@ -125,7 +125,7 @@ describe('persistent', () => {
 
     it('eventually calls fs.writeFile once with arguments (path, json) when array is filled with item', () => {
       fs.readFile.error = ENOENT;
-      persistent('path', [1, 2])
+      return persistent('path', [1, 2])
         .then(array => (array.fill(42), array))
         .then(defer)
         .then(array =>
@@ -135,7 +135,7 @@ describe('persistent', () => {
 
     it('eventually calls fs.writeFile once with arguments (path, json) when array item is popped', () => {
       fs.readFile.error = ENOENT;
-      persistent('path', [42])
+      return persistent('path', [42])
         .then(array => (array.pop(), array))
         .then(defer)
         .then(array =>
@@ -145,7 +145,7 @@ describe('persistent', () => {
 
     it('eventually calls fs.writeFile once with arguments (path, json) when array item is pushed', () => {
       fs.readFile.error = ENOENT;
-      persistent('path', [])
+      return persistent('path', [])
         .then(array => (array.push(42), array))
         .then(defer)
         .then(array =>
@@ -155,7 +155,7 @@ describe('persistent', () => {
 
     it('eventually calls fs.writeFile once with arguments (path, json) when array item is removed with splice', () => {
       fs.readFile.error = ENOENT;
-      persistent('path', [42])
+      return persistent('path', [42])
         .then(array => (array.splice(0, 1), array))
         .then(defer)
         .then(array =>
@@ -165,7 +165,7 @@ describe('persistent', () => {
 
     it('eventually calls fs.writeFile once with arguments (path, json) when array item is added with splice', () => {
       fs.readFile.error = ENOENT;
-      persistent('path', [42])
+      return persistent('path', [42])
         .then(array => (array.splice(0, 0, 42), array))
         .then(defer)
         .then(array =>
@@ -175,7 +175,7 @@ describe('persistent', () => {
 
     it('eventually calls fs.writeFile once with arguments (path, json) when array is reversed', () => {
       fs.readFile.error = ENOENT;
-      persistent('path', [1, 2])
+      return persistent('path', [1, 2])
         .then(array => (array.reverse(), array))
         .then(defer)
         .then(array =>
@@ -185,7 +185,7 @@ describe('persistent', () => {
 
     it('eventually calls fs.writeFile once with arguments (path, json) when array item is shifted', () => {
       fs.readFile.error = ENOENT;
-      persistent('path', [42])
+      return persistent('path', [42])
         .then(array => (array.shift(), array))
         .then(defer)
         .then(array =>
@@ -195,7 +195,7 @@ describe('persistent', () => {
 
     it('eventually calls fs.writeFile once with arguments (path, json) when array item is sorted', () => {
       fs.readFile.error = ENOENT;
-      persistent('path', [2, 1, 3])
+      return persistent('path', [2, 1, 3])
         .then(array => (array.sort(), array))
         .then(defer)
         .then(array =>
@@ -205,7 +205,7 @@ describe('persistent', () => {
 
     it('eventually calls fs.writeFile once with arguments (path, json) when array item is unshifted', () => {
       fs.readFile.error = ENOENT;
-      persistent('path', [])
+      return persistent('path', [])
         .then(array => (array.unshift(42), array))
         .then(defer)
         .then(array =>
@@ -227,7 +227,7 @@ describe('persistent', () => {
     });
 
     it('eventually calls fs.writeFile once when object is modified several times together', () => {
-      persistent('path')
+      return persistent('path')
         .then(object => (object.test = 42, delete object.test, object))
         .then(defer)
         .then(() =>
@@ -261,7 +261,7 @@ describe('persistent', () => {
     });
 
     it('throws TypeError if property being defined cannot be proxied', () => {
-      persistent('path').then(object =>
+      return persistent('path').then(object =>
         expect(() => Object.defineProperty(object, 'test', { value: {} })).to.throw(TypeError)
       )
     });
@@ -359,13 +359,13 @@ describe('persistent', () => {
 
   describe('persistent(path:string, option)', () => {
     it('throws TypeError if options is not object or function (watcher) or number (depth)', () => {
-      expect(() => persistent('path', true)).to.throw(TypeError)
+      return expect(() => persistent('path', true)).to.throw(TypeError)
     });
   });
 
   describe('persistent(path:string, prototype:object, option)', () => {
     it('throws TypeError if options is not object or function (watcher) or number (depth)', () => {
-      expect(() => persistent('path', [], true)).to.throw(TypeError)
+      return expect(() => persistent('path', [], true)).to.throw(TypeError)
     });
   });
 });
