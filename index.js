@@ -1,10 +1,8 @@
 'option strict';
 
 const { readFile, writeFile } = require('fs');
-const { nextTick } = process;
 const { parse, stringify } = JSON;
 
-const CHANGED = 1, PENDING = 2;
 const defaultOptions = { delay: 0, depth: 0, prototype: {}};
 let id = 0;
 
@@ -24,7 +22,7 @@ module.exports = function persistent(path, options = {}) {
     throw new TypeError(`Argument watcher has unsupported type: ${typeof watcher}.`);
 
   const $nest = Symbol(++id);
-  let object, state = 0, trap = true;
+  let object, saving = false, timeout, trap = true;
 
   function load() {
     return new Promise((resolve, reject) =>
@@ -39,23 +37,25 @@ module.exports = function persistent(path, options = {}) {
   }
 
   function plan() {
-    state |= CHANGED;
-    if (!(state & PENDING)) {
-      state |= PENDING;
-      nextTick(save);
+    if (!saving) {
+      saving = true;
+      timeout = setTimeout(save, delay);
+    }
+    if (timeout) {
+      clearTimeout(timeout);
+      timeout = setTimeout(save, delay);
     }
     return true;
   }
 
   function save() {
-    state &= ~CHANGED;
+    timeout = undefined;
     writeFile(path, stringify(object), error => {
-      state &= ~PENDING;
+      saving = false;
       if (error) {
         if (watcher) watcher(error, object);
         else throw error;
       }
-      if (state & CHANGED) save();
       else if (watcher) watcher(null, object);
     });
   }

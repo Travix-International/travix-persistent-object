@@ -9,39 +9,38 @@ const sinon = require('sinon');
 const { expect } = chai;
 const { spy } = sinon;
 const { stringify } = JSON;
-const { nextTick } = process;
 
 const EACCES = new Error;
 EACCES.code = 'EACCES';
 const ENOENT = new Error;
 ENOENT.code = 'ENOENT';
 
+const delay = 100;
+let clock;
 const defer = value => new Promise(
-  resolve => nextTick(() => resolve(value))
-);
-
-const delay = value => new Promise(
-  resolve => setTimeout(() => resolve(value))
+  resolve => (clock.tick(delay),resolve(value))
 );
 
 const fs = {
   readFile: spy((path, callback) => callback(fs.readFile.error, fs.readFile.result)),
-  writeFile: spy((path, data, callback) =>
-    fs.writeFile.delay
-      ? delay().then(() => callback(fs.writeFile.error))
-      : callback(fs.writeFile.error)
+  writeFile: spy((path, data, callback) => callback(fs.writeFile.error)
   )
 };
 const persistent = proxyquire('./', { fs });
 
 describe('persistent', () => {
   beforeEach(() => {
+    clock = sinon.useFakeTimers();
+
     fs.readFile.error = null;
     fs.readFile.result = '{}';
     fs.readFile.reset();
-    fs.writeFile.delay = false;
     fs.writeFile.error = null;
     fs.writeFile.reset();
+  });
+
+  afterEach(() => {
+    clock.restore();
   });
 
   it('is a function', () => {
@@ -235,28 +234,13 @@ describe('persistent', () => {
         )
     });
 
-    it('eventually calls fs.writeFile again if object is modified when saving is in progress', () => {
-      fs.writeFile.delay = true;
+    it('eventually calls fs.writeFile only once if object is modified when saving is in progress', () => {
       return persistent('path')
         .then(object => (object.test = 42, object))
-        .then(defer)
-        .then(object => (fs.writeFile.delay = false, object.test = 24, object))
-        .then(delay)
-        .then(() =>
-          expect(fs.writeFile).to.have.been.calledTwice
-        );
-    });
-
-    it('eventually throws error reported by fs.writeFile if watcher is not specified', () => {
-      fs.writeFile.error = EACCES;
-      const uncaughtException = spy();
-      process.removeAllListeners('uncaughtException');
-      process.on('uncaughtException', uncaughtException);
-      return persistent('path')
-        .then(object => (object.test = 42, object))
+        .then(object => (object.test = 24, object))
         .then(defer)
         .then(() =>
-          expect(uncaughtException).to.have.been.calledWith(EACCES)
+          expect(fs.writeFile).to.have.been.calledOnce
         );
     });
 
