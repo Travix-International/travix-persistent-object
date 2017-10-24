@@ -243,32 +243,15 @@ return persistent('path')
   )
 ```
 
-eventually calls fs.writeFile again if object is modified when saving is in progress.
+eventually calls fs.writeFile only once if object is modified when saving is in progress.
 
 ```js
-fs.writeFile.delay = true;
 return persistent('path')
   .then(object => (object.test = 42, object))
-  .then(defer)
-  .then(object => (fs.writeFile.delay = false, object.test = 24, object))
-  .then(delay)
-  .then(() =>
-    expect(fs.writeFile).to.have.been.calledTwice
-  );
-```
-
-eventually throws error reported by fs.writeFile if watcher is not specified.
-
-```js
-fs.writeFile.error = EACCES;
-const uncaughtException = spy();
-process.removeAllListeners('uncaughtException');
-process.on('uncaughtException', uncaughtException);
-return persistent('path')
-  .then(object => (object.test = 42, object))
+  .then(object => (object.test = 24, object))
   .then(defer)
   .then(() =>
-    expect(uncaughtException).to.have.been.calledWith(EACCES)
+    expect(fs.writeFile).to.have.been.calledOnce
   );
 ```
 
