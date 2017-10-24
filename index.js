@@ -5,34 +5,26 @@ const { nextTick } = process;
 const { parse, stringify } = JSON;
 
 const CHANGED = 1, PENDING = 2;
+const defaultOptions = { delay: 0, depth: 0, prototype: {}};
 let id = 0;
 
-module.exports = function persistent(path, ...options) {
+module.exports = function persistent(path, options = {}) {
   if (typeof path !== 'string' || !path.length)
     throw new TypeError('Argument "path" must be not empty string.');
 
+  const { delay, depth, prototype, watcher } = Object.assign({}, defaultOptions, options);
+
+  if (typeof delay !== 'number')
+    throw new TypeError(`Argument delay has unsupported type: ${typeof delay}.`);
+  if (typeof depth !== 'number')
+    throw new TypeError(`Argument depth has unsupported type: ${typeof depth}.`);
+  if (typeof prototype !== 'object')
+    throw new TypeError(`Argument prototype has unsupported type: ${typeof prototype}.`);
+  if (watcher && typeof watcher !== 'function')
+    throw new TypeError(`Argument watcher has unsupported type: ${typeof watcher}.`);
+
   const $nest = Symbol(++id);
   let object, state = 0, trap = true;
-  let depth = 0, prototype = {}, watcher;
-
-  const { length } = options;
-  for (let i = -1; ++i < length;) {
-    const option = options[i];
-    const type = typeof option;
-    switch (type) {
-      case 'function':
-        watcher = option;
-        break;
-      case 'number':
-        depth = option;
-        break;
-      case 'object':
-        prototype = option;
-        break;
-      default:
-        throw new TypeError(`Argument #${i + 1} has unsupported type: ${type}.`);
-    }
-  }
 
   function load() {
     return new Promise((resolve, reject) =>
