@@ -121,10 +121,11 @@ Creates new persistent object and returns promise eventually resolving to the ob
 
 ### Arguments:
 1. `path` (`String`): Path to the file to load object from and to save it to. Should be not empty string;
-2. `[options]` (`Function`|`Number`|`Object`): Arbitrary duck-typed combination of depth, prototype and watcher arguments:
+2. `[options]` (`Object`): Object with options:
+  * `[delay=0]`: Delay before saving changes.
   * `[depth=0]`: Depth to track changes on (how deep nested object are recursively prozied). Zero means unlimited depth.
   * `[prototype={}]`: Object to use by default when path points to non-existing file. Can be any sort of object. If a function passed to this argument, it is considered to be a `watcher`.
-  * `[watcher]`: Function to be called each time the object has been saved or  attempt to save has failed. Accepts two arguments:
+  * `[watcher]`: Function to be called each time the object has been saved or attempt to save has failed. Accepts two arguments:
     * `[error]`: Error returned by `fs.writeFile` if any, or `null`,
     * `[proxy]`: Proxy initially returned by `persistentObject`.
 
